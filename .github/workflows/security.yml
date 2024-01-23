@@ -1,68 +1,17 @@
-# name: Enlightn Checks
-
-# on: [pull_request]
-
-# jobs:
-#   tests:
-#     runs-on: ubuntu-latest
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#         php: [7.4]
-
-#     name: P${{ matrix.php }}
-
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
-
-#       - name: Setup PHP
-#         uses: shivammathur/setup-php@v2
-#         with:
-#           php-version: ${{ matrix.php }}
-#           extensions: dom, curl, libxml, mbstring, zip, json
-#           coverage: none
-
-#       - name: Run Enlightn Checks and Trigger the Enlightn Bot
-#         if: ${{ github.event_name == 'pull_request' }}
-#         env:
-#           ENLIGHTN_USERNAME: ${{ secrets.ENLIGHTN_USERNAME }}
-#           ENLIGHTN_API_TOKEN: ${{ secrets.ENLIGHTN_API_TOKEN }}
-#           ENLIGHTN_GITHUB_REPO: ${{ github.repository }}
-#         run: |
-#           php artisan enlightn --ci --report --review --issue=${{ github.event.number }}
-
-
-
-name: Run Enlightn
+name: SecurityPipeline
 
 on: [pull_request]
 
 jobs:
-  enlightn:
+  horusec-security:
+    name: horusec-security
     runs-on: ubuntu-latest
-
-    env:
-      ENLIGHTN_USERNAME: ${{ secrets.ENLIGHTN_USERNAME }}
-      ENLIGHTN_API_TOKEN: ${{ secrets.ENLIGHTN_API_TOKEN }}
-      ENLIGHTN_GITHUB_REPO: sahu04/web_app
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '7.4'
-
-      - name: Install Composer Dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
-
-      - name: Run Enlightn
-        run: php artisan enlightn --ci --report --review --issue=1
-        env:
-          COMPOSER_PROCESS_TIMEOUT: 0
-          COMPOSER_NO_INTERACTION: 1
-          COMPOSER_NO_AUDIT: 1
-
+    - name: Check out code
+      uses: actions/checkout@v2
+      with: # Required when commit authors is enabled
+        fetch-depth: 0
+    - name: Running Horusec Security
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/ZupIT/horusec/main/deployments/scripts/install.sh | bash -s latest
+        horusec start -p="./" -e="true"  
