@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/sahu04/node_js.git'
+                git 'https://github.com/sahu04/flask-app.git'
             }
         }
 
