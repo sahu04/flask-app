@@ -64,7 +64,6 @@ pipeline {
     environment {
         DOCKERFILE_PATH = "./Dockerfile"
         TRIVY_REPORT_PATH = "trivy-scan-report.json"
-        dockerImageName = "" // Define dockerImageName globally
         DOCKLE_REPORT_PATH = "dockle-scan-report.json"
     }
 
@@ -101,16 +100,9 @@ pipeline {
         stage('Install Dockle') {
             steps {
                  script {
-                    // Download Dockle tarball
                     sh 'curl -LO https://github.com/goodwithtech/dockle/releases/download/v0.4.13/dockle_0.4.13_Linux-64bit.tar.gz'
-
-                    // Extract Dockle tarball
                     sh 'tar -xzf dockle_0.4.13_Linux-64bit.tar.gz'
-
-                    // Move Dockle binary to a directory in the system path
                     sh 'sudo mv dockle /usr/local/bin/'
-
-                    // Verify Dockle installation
                     sh 'dockle --version'
                 }
             }
