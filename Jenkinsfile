@@ -86,13 +86,13 @@ pipeline {
             }
         }
 
-           stage('Install Trivy') {
+        stage('Install Trivy') {
             steps {
                 script {
-                        sh 'sudo chmod o+w /usr/local/bin'
-                        sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.3'
-                        sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl > html.tpl'
-                
+                    sh 'sudo chmod o+w /usr/local/bin'
+                    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.3'
+                    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl > html.tpl'
+
                     sh 'trivy --version'
                 }
             }
@@ -116,16 +116,17 @@ pipeline {
                 }
             }
         }
-    }
-    stage('Security Scan - Dockle') {
-    steps {
-        script {
-            def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
-            echo "Running Dockle scan for image: ${dockerImageName}"
-            sh "dockle --exit-code 1 --exit-level fatal -o json -f ${DOCKLE_REPORT_PATH} ${dockerImageName}"
+        stage('Security Scan - Dockle') {
+            steps {
+                script {
+                    def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
+                    echo "Running Dockle scan for image: ${dockerImageName}"
+                    sh "dockle --exit-code 1 --exit-level fatal -o json -f ${DOCKLE_REPORT_PATH} ${dockerImageName}"
+                }
+            }
         }
-    }
-}
+    } 
+
     post {
         always {
             script {
@@ -134,4 +135,4 @@ pipeline {
             }
         }
     }
-}
+} 
