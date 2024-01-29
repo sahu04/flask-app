@@ -110,9 +110,13 @@ pipeline {
     post {
         always {
             script {
-                // Note: You can't remove the docker image name here, as it's needed for cleanup
-                sh "docker rmi ${env.dockerImageName}"
+                if (env.dockerImageName != "") { // Check if dockerImageName is not empty
+                    sh "docker rmi ${env.dockerImageName}" // Access dockerImageName using env prefix
+                } else {
+                    echo "Docker image name is empty. Skipping removal."
+                }
                 archiveArtifacts artifacts: 'trivy-scan-report.json', followSymlinks: false
+                deleteDir() // Clean the workspace
             }
         }
     }
