@@ -111,7 +111,7 @@ pipeline {
         always {
             script {
                 // Note: You can't remove the docker image name here, as it's needed for cleanup
-                sh "docker rmi ${dockerImageName}"
+                sh "docker rmi ${env.dockerImageName}"
                 archiveArtifacts artifacts: 'trivy-scan-report.json', followSymlinks: false
             }
         }
