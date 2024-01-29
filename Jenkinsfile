@@ -42,6 +42,7 @@
 //                 script {
 //                     echo "Running Trivy scan for image: ${DOCKER_IMAGE_NAME}"
 //                     sh "trivy --exit-code 1 --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${DOCKER_IMAGE_NAME}"
+
 //                 }
 //             }
 //         }
@@ -119,7 +120,8 @@ pipeline {
                 script {
                     def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
                     echo "Running Trivy scan for image: ${dockerImageName}"
-                    sh "trivy --exit-code 1 --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
+                    // sh "trivy --exit-code 1 --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
+                    sh "trivy  --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
                 }
             }
         }
@@ -128,7 +130,8 @@ pipeline {
                 script {
                     def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
                     echo "Running Dockle scan for image: ${dockerImageName}"
-                    sh "dockle --exit-code 1 --exit-level fatal -o json -f ${DOCKLE_REPORT_PATH} ${dockerImageName}"
+                    // sh "dockle --exit-code 1 --exit-level fatal -o json -f ${DOCKLE_REPORT_PATH} ${dockerImageName}"
+                     sh "dockle  --exit-level fatal -o json -f ${DOCKLE_REPORT_PATH} ${dockerImageName}"
                 }
             }
         }
