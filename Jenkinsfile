@@ -100,9 +100,9 @@ pipeline {
         stage('Install Dockle') {
             steps {
                 script {
-                    sh 'sudo curl -Lo dockle https://github.com/goodwithtech/dockle/releases/download/v0.4.13/dockle-Linux-64bit.tar.gz'
-                    sh 'sudo tar -xzf dockle-Linux-64bit.tar.gz'
-                    sh 'sudo mv dockle /usr/local/bin/'
+                    sh 'curl -Lo dockle https://github.com/goodwithtech/dockle/releases/download/v0.4.13/dockle-Linux-64bit.tar.gz'
+                    sh ' tar -xzf dockle-Linux-64bit.tar.gz'
+                    sh ' mv dockle /usr/local/bin/'
                     sh 'dockle --version'
                 }
             }
