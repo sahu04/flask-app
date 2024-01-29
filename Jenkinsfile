@@ -63,6 +63,7 @@ pipeline {
     environment {
         DOCKERFILE_PATH = "./Dockerfile"
         TRIVY_REPORT_PATH = "trivy-scan-report.json"
+         dockerImageName = "" // Define dockerImageName globally
     }
 
     stages {
@@ -84,19 +85,17 @@ pipeline {
             }
         }
 
-        stage('Install Trivy') {
+           stage('Install Trivy') {
             steps {
                 script {
-                    sh '''
-                       sudo wget -qO trivy https://github.com/aquasecurity/trivy/releases/latest/download/trivy_$(uname -s)_$(uname -m)
-                       sudo chmod +x trivy
-                       sudo mv trivy /usr/local/bin/
-                    '''
+                        sh 'sudo chmod o+w /usr/local/bin'
+                        sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.3'
+                        sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl > html.tpl'
+                
                     sh 'trivy --version'
                 }
             }
         }
-
         stage('Vulnerability Scan - Docker Trivy') {
             steps {
                 script {
