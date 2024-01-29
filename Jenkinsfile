@@ -135,10 +135,10 @@ pipeline {
     } 
 
     post {
-        always {
-            script {
-                archiveArtifacts artifacts: [TRIVY_REPORT_PATH, DOCKLE_REPORT_PATH], followSymlinks: false
-                deleteDir() // Clean the workspace
+    always {
+        script {
+            archiveArtifacts artifacts: "${TRIVY_REPORT_PATH}, ${DOCKLE_REPORT_PATH}", followSymlinks: false
+            deleteDir() // Clean the workspace
             }
         }
     }
