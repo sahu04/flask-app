@@ -130,7 +130,7 @@ pipeline {
                 script {
                     def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
                     echo "Running Dockle scan for image: ${dockerImageName}"
-                     sh "dockle --exit-code 1 --exit-level fatal -o json -f ${DOCKLE_REPORT_PATH} ${dockerImageName}"
+                     sh "export DOCKLE_HOST='unix:///var/run/docker.sock' && dockle -f json -o ${DOCKLE_REPORT_PATH}  --exit-code 1 --exit-level fatal   ${dockerImageName}"
                      // sh "dockle  --exit-level fatal -o json -f ${DOCKLE_REPORT_PATH} ${dockerImageName}"
                 }
             }
