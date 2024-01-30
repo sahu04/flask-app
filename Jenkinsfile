@@ -54,6 +54,7 @@ pipeline {
                     echo "Running Trivy scan for image: ${dockerImageName}"
                     // sh "trivy --exit-code 1 --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
                     sh "trivy  --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
+                    sh "trivy image --format template --template html.tpl -o trivy_report.html ${dockerImageName}"
                 }
             }
         }
