@@ -58,6 +58,18 @@ pipeline {
                 }
             }
         }
+        stage('Publish HTML Report') {
+    steps {
+        publishHTML(target: [
+            allowMissing: false,
+            alwaysLinkToLastBuild: false,
+            keepAll: true,
+            reportDir: '.',
+            reportFiles: 'trivy_report.html',
+            reportName: 'Trivy Security Report'
+        ])
+    }
+}
         stage('Security Scan - Dockle') {
             steps {
                 script {
