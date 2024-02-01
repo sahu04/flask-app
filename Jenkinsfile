@@ -19,8 +19,6 @@ pipeline {
                 script {
                     def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
                     sh "docker build -t ${dockerImageName} -f ${DOCKERFILE_PATH} ."
-                    
-                    // Continue using dockerImageName directly in the subsequent steps
                     echo "Docker image name: ${dockerImageName}"
                 }
             }
@@ -54,7 +52,6 @@ pipeline {
                 script {
                     def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
                     echo "Running Trivy scan for image: ${dockerImageName}"
-                    // sh "trivy --exit-code 1 --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
                     sh "trivy  image --scanners vuln --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
                     sh "trivy image --scanners vuln --format template --template @./html.tpl -o report.html ${dockerImageName}"
                 }
@@ -71,14 +68,15 @@ pipeline {
             }
         }
     
-      stage('Archive HTML Report') {
+        stage('Archive HTML Report') {
             steps {
                 script {  
-                 archiveArtifacts artifacts: 'report.html', fingerprint: true
+                    archiveArtifacts artifacts: 'report.html', fingerprint: true
                 }
             }
         }
-       stage('Publish HTML Report') {
+        
+        stage('Publish HTML Report') {
             steps {
                 script {
                     publishHTML(
@@ -91,14 +89,14 @@ pipeline {
                 }
             }
         }
+    }
+    
     post {
         always {
             script {
-                archiveArtifacts artifacts: "${TRIVY_REPORT_PATH}, ${DOCKLE_REPORT_PATH}", followSymlinks: false
-            deleteDir() // Clean the workspace
-            
+                archiveArtifacts artifacts: "${TRIVY_REPORT_PATH},${DOCKLE_REPORT_PATH}", followSymlinks: false
+                deleteDir() // Clean the workspace
             }
         }
     }
-}
 }
