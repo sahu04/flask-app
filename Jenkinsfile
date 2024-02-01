@@ -70,21 +70,33 @@ pipeline {
                 }
             }
         }
-    } 
-
+    
+      stage('Archive HTML Report') {
+            steps {
+                script {  
+                 archiveArtifacts artifacts: 'report.html', fingerprint: true
+                }
+            }
+        }
+       stage('Publish HTML Report') {
+            steps {
+                script {
+                    publishHTML(
+                        target: [
+                            reportDir: '.',
+                            reportFiles: 'report.html',
+                            reportName: 'Trivy Security Report'
+                        ]
+                    )
+                }
+            }
+        }
     post {
         always {
             script {
-                archiveArtifacts artifacts: "${TRIVY_REPORT_PATH} ${DOCKLE_REPORT_PATH} report.html", followSymlinks: false
-                publishHTML(target: [
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: false,
-                    keepAll: true,
-                    reportDir: '.',
-                    reportFiles: 'report.html',
-                    reportName: 'Trivy Security Report'
-                ])
-                deleteDir() // Clean the workspace
+                archiveArtifacts artifacts: "${TRIVY_REPORT_PATH}, ${DOCKLE_REPORT_PATH}", followSymlinks: false
+            deleteDir() // Clean the workspace
+            
             }
         }
     }
