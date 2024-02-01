@@ -30,8 +30,8 @@ pipeline {
             steps {
                 script {
                     sh 'sudo chmod o+w /usr/local/bin'
-                    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.3'
-                    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl > html.tpl'
+                    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.3'
+                    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl'
 
                     sh 'trivy --version'
                 }
@@ -54,8 +54,7 @@ pipeline {
                     echo "Running Trivy scan for image: ${dockerImageName}"
                     // sh "trivy --exit-code 1 --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
                     sh "trivy  --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
-                   // sh "trivy image --format template --template html.tpl -o trivy_report.html ${dockerImageName}"
-                    sh "trivy image  --severity HIGH,CRITICAL --format template -o trivy_report.html ${dockerImageName}"
+                    sh "trivy image --scanners vuln --format template --template @./html.tpl -o trivy_report.html ${dockerImageName}"
                 }
             }
         }
@@ -86,7 +85,7 @@ pipeline {
     post {
     always {
         script {
-            archiveArtifacts artifacts: "${TRIVY_REPORT_PATH}, ${DOCKLE_REPORT_PATH}", followSymlinks: false
+            archiveArtifacts artifacts: "${TRIVY_REPORT_PATH} ${DOCKLE_REPORT_PATH} triy_report.html", followSymlinks: false
             deleteDir() // Clean the workspace
             }
         }
