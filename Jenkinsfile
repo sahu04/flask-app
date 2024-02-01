@@ -37,6 +37,7 @@ pipeline {
                 }
             }
         }
+
         stage('Install Dockle') {
             steps {
                  script {
@@ -47,6 +48,7 @@ pipeline {
                 }
             }
         }
+
         stage('Vulnerability Scan - Docker Trivy') {
             steps {
                 script {
@@ -58,36 +60,32 @@ pipeline {
                 }
             }
         }
-        stage('Publish HTML Report') {
-    steps {
-        publishHTML(target: [
-            allowMissing: false,
-            alwaysLinkToLastBuild: false,
-            keepAll: true,
-            reportDir: '.',
-            reportFiles: 'trivy_report.html',
-            reportName: 'Trivy Security Report'
-        ])
-    }
-}
+
         stage('Security Scan - Dockle') {
             steps {
                 script {
                     def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
                     echo "Running Dockle scan for image: ${dockerImageName}"
-                     sh "dockle -f json -o ${DOCKLE_REPORT_PATH}  --exit-code 1 --exit-level fatal ${dockerImageName}"
-                    
+                    sh "dockle -f json -o ${DOCKLE_REPORT_PATH} --exit-code 1 --exit-level fatal ${dockerImageName}"
                 }
             }
         }
     } 
 
     post {
-    always {
-        script {
-            archiveArtifacts artifacts: "${TRIVY_REPORT_PATH} ${DOCKLE_REPORT_PATH} triy_report.html", followSymlinks: false
-            deleteDir() // Clean the workspace
+        always {
+            script {
+                archiveArtifacts artifacts: "${TRIVY_REPORT_PATH} ${DOCKLE_REPORT_PATH} trivy_report.html", followSymlinks: false
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: false,
+                    keepAll: true,
+                    reportDir: '.',
+                    reportFiles: 'trivy_report.html',
+                    reportName: 'Trivy Security Report'
+                ])
+                deleteDir() // Clean the workspace
             }
         }
     }
-} 
+}
