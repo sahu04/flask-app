@@ -56,7 +56,7 @@ pipeline {
                     echo "Running Trivy scan for image: ${dockerImageName}"
                     // sh "trivy --exit-code 1 --severity HIGH,MEDIUM,LOW --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
                     sh "trivy  image --scanners vuln --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
-                    sh "trivy image --scanners vuln --format template --template @./html.tpl -o trivy_report.html ${dockerImageName}"
+                    sh "trivy image --scanners vuln --format template --template @./html.tpl -o report.html ${dockerImageName}"
                 }
             }
         }
@@ -75,13 +75,13 @@ pipeline {
     post {
         always {
             script {
-                archiveArtifacts artifacts: "${TRIVY_REPORT_PATH} ${DOCKLE_REPORT_PATH} trivy_report.html", followSymlinks: false
+                archiveArtifacts artifacts: "${TRIVY_REPORT_PATH} ${DOCKLE_REPORT_PATH} report.html", followSymlinks: false
                 publishHTML(target: [
                     allowMissing: false,
                     alwaysLinkToLastBuild: false,
                     keepAll: true,
                     reportDir: '.',
-                    reportFiles: 'trivy_report.html',
+                    reportFiles: 'report.html',
                     reportName: 'Trivy Security Report'
                 ])
                 deleteDir() // Clean the workspace
