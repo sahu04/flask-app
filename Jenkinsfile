@@ -47,7 +47,7 @@ pipeline {
             }
         }
 
-        stage('Vulnerability Scan - Docker Trivy') {
+        stage('Scan image for vulnerabilities') {
             steps {
                 script {
                     def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
