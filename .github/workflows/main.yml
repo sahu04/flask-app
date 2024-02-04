@@ -42,5 +42,19 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-      
+      - name: Run dockle
+        uses: goodwithtech/dockle-action@main
+        with:
+          image: 'docker.io/sahu04/flask-app:${{ github.sha }}'
+          format: 'json'
+          output: 'result.json'
+          # exit-code: '1'
+          exit-level: 'warn'
+          ignore: 'CIS-DI-0001,DKL-DI-0006,DKL-LI-0001'
+      - name: Upload Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Report
+          path: result.json
       
