@@ -55,4 +55,18 @@ jobs:
         with:
           name: Report
           path: result.json
+
+      - name: Run dockle
+        uses: goodwithtech/dockle-action@main
+        with:
+          image: 'docker.io/sahu04/flask-app:${{ github.sha }}'
+          format: 'sarif'
+          output: 'dockle-result.sarif'
+          exit-code: '0'
+
+      - name: Uploadd Dockle scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'dockle-results.sarif'
       
