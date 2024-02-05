@@ -48,6 +48,7 @@ jobs:
           image: 'docker.io/sahu04/flask-app:${{ github.sha }}'
           format: 'json'
           output: 'result.json'
+          exit-code: '0'
       - name: Upload Report
         uses: actions/upload-artifact@v3
         if: always()
