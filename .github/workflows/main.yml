@@ -48,7 +48,6 @@ jobs:
           image: 'docker.io/sahu04/flask-app:${{ github.sha }}'
           format: 'json'
           output: 'result.json'
-          # exit-code: '1'
           exit-level: 'warn'
           ignore: 'CIS-DI-0001,DKL-DI-0006,DKL-LI-0001'
       - name: Upload Report
