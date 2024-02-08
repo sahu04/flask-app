@@ -1,0 +1,63 @@
+stages:
+  - build
+  - test
+  - scan
+
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  IMAGE_REGISTRY: $CI_REGISTRY_IMAGE:$IMAGE_TAG
+
+services:
+  - name: docker:dind
+    entrypoint: ["env", "-u", "DOCKER_HOST"]
+    command: ["dockerd-entrypoint.sh"]
+
+build_image:
+  stage: build
+  image: docker:stable
+  script:
+    - docker build -t $IMAGE_REGISTRY .
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $IMAGE_REGISTRY
+
+trivy_scan:
+  stage: test
+  image: docker:stable
+  variables:
+     IMAGE:  $IMAGE_REGISTRY
+  before_script:
+    - |
+      export TRIVY_VERSION=$(wget -qO - "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+    - echo $TRIVY_VERSION
+    - wget --no-verbose https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz -O - | tar -zxvf -
+  allow_failure: true
+  script:
+    - docker pull $IMAGE_REGISTRY
+    - docker images
+    - ./trivy image --scanners vuln --format json -o trivy-report.json $IMAGE
+    - ./trivy image --scanners vuln --format table $IMAGE
+  artifacts:
+    reports:
+      container_scanning: trivy-report.json
+      
+dockle_scan:
+  stage: scan
+  image: docker:stable
+  variables:
+    IMAGE: $IMAGE_REGISTRY
+  before_script:
+    - wget https://github.com/goodwithtech/dockle/releases/download/v0.4.13/dockle_0.4.13_Linux-64bit.tar.gz
+    - tar -xzf dockle_0.4.13_Linux-64bit.tar.gz
+    - mv dockle /usr/local/bin/
+    - export PATH=$PATH:/usr/local/bin  # Add the directory containing Dockle binary to the system path
+    - dockle --version
+  script:
+    - docker pull $IMAGE_REGISTRY # Pull the image from the registry if it's not already available
+    - docker images
+    - /usr/local/bin/dockle -f json -o dockle-registry.json --exit-code 1 --exit-level fatal $IMAGE
+  artifacts:
+    paths:
+      - dockle-registry.json
