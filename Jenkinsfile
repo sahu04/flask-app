@@ -1,103 +1,52 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERFILE_PATH = "./Dockerfile"
-        TRIVY_REPORT_PATH = "trivy-scan-report.json"
-        DOCKLE_REPORT_PATH = "dockle-scan-report.json"
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/sahu04/flask-app.git'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
                 script {
-                    def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
-                    sh "docker build -t ${dockerImageName} -f ${DOCKERFILE_PATH} ."
-                    echo "Docker image name: ${dockerImageName}"
+                    // Checkout your Git repository
+                    checkout scm
                 }
             }
         }
 
-        stage('Install Trivy') {
+        stage('Install Dependencies') {
             steps {
                 script {
-                    sh 'sudo chmod o+w /usr/local/bin'
-                    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.3'
-                    sh 'wget https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl'
-
-                    sh 'trivy --version'
+                    // Install required dependencies
+                    sh 'pip install --upgrade pip'
+                    sh 'pip install -r requirements.txt'
                 }
             }
         }
 
-        stage('Install Dockle') {
+        stage('Deploy to Local Server') {
             steps {
-                 script {
-                    sh 'curl -LO https://github.com/goodwithtech/dockle/releases/download/v0.4.13/dockle_0.4.13_Linux-64bit.tar.gz'
-                    sh 'tar -xzf dockle_0.4.13_Linux-64bit.tar.gz'
-                    sh 'sudo mv dockle /usr/local/bin/'
-                    sh 'dockle --version'
+                script {
+                    // Your deployment commands
+                    sh 'nohup python3 main.py &'
+                    sleep 10  // Give some time for the app to start
                 }
             }
         }
 
-        stage('Scan image for vulnerabilities') {
+        stage('Check Application URL') {
             steps {
                 script {
-                    def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
-                    echo "Running Trivy scan for image: ${dockerImageName}"
-                    sh "trivy  image --scanners vuln --format json -o ${TRIVY_REPORT_PATH} ${dockerImageName}"
-                    sh "trivy image --scanners vuln --format template --template @./html.tpl -o report.html ${dockerImageName}"
-                }
-            }
-        }
-
-        stage('Security Scan - Dockle') {
-            steps {
-                script {
-                    def dockerImageName = sh(script: "awk 'NR==1 {print \$2}' ${DOCKERFILE_PATH}", returnStdout: true).trim()
-                    echo "Running Dockle scan for image: ${dockerImageName}"
-                    sh "dockle -f json -o ${DOCKLE_REPORT_PATH} --exit-code 1 --exit-level fatal ${dockerImageName}"
+                    // Use curl to check if the application is responsive
+                    def responseCode = sh(script: 'curl -o /dev/null -s -w "%{http_code}" http://localhost:5000', returnStatus: true)
                     
+                    if (responseCode == 200) {
+                        // Print the URL if the application is accessible
+                        echo 'Application is accessible.'
+                        echo 'URL: http://localhost:5000'
+                    } else {
+                        error "Application health check failed. HTTP status code: ${responseCode}"
+                    }
                 }
-            }
-        }
-    
-        stage('Archive HTML Report') {
-            steps {
-                script {  
-                    archiveArtifacts artifacts: 'report.html', fingerprint: true
-                }
-            }
-        }
-        
-        stage('Publish HTML Report') {
-            steps {
-                script {
-                    publishHTML(
-                        target: [
-                            reportDir: '.',
-                            reportFiles: 'report.html',
-                            reportName: 'Trivy Security Report'
-                        ]
-                    )
-                }
-            }
-        }
-    }
-    
-    post {
-        always {
-            script {
-                archiveArtifacts artifacts: "${TRIVY_REPORT_PATH},${DOCKLE_REPORT_PATH}", followSymlinks: false
-                deleteDir() // Clean the workspace
             }
         }
     }
 }
+
