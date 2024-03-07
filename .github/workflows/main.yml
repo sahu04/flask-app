@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Build an image from Dockerfile
         run: |
@@ -37,7 +37,7 @@ jobs:
           output: 'trivy-results.json'
         
       - name: Upload Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Trivy-report
@@ -50,7 +50,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -64,7 +64,7 @@ jobs:
           output: 'dockle-result.json'
           exit-code: '0'
       - name: Upload Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Dockle-report
@@ -79,7 +79,7 @@ jobs:
           exit-code: '0'
 
       - name: Uploadd Dockle scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'dockle-result.sarif'
