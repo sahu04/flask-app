@@ -129,13 +129,16 @@ on:
   push:
     branches: 
       - master
-    paths:
-      - '**/Dockerfile'
+    # paths:
+    #   - '**/Dockerfile'
   pull_request:
     branches: 
       - master
-    paths:
-      - '**/Dockerfile'
+    # paths:
+    #   - '**/Dockerfile'
+env:
+  AWS_REGION: ap-south-1                 # set this to your preferred AWS region, e.g. us-west-1
+  ECR_REPOSITORY: flask-app         # set this to your Amazon ECR repository name
 
 jobs:
   build:
@@ -152,9 +155,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1  # Replace with your desired region
 
-      - name: Build and push Docker image
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+         IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t flask-app .
-          docker tag flask-app:latest 972720899290.dkr.ecr.ap-south-1.amazonaws.com/flask-app:latest
-          # docker tag flask-app:dev ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com/flask-app:dev
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com/flask-app:dev
+        
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
