@@ -289,7 +289,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
+        if: github.ref == 'refs/heads/develop' && github.event.head_commit.modified | contains('Dockerfile')
       - name: Check for Dockerfile changes
         id: check-dockerfile
         run: |
