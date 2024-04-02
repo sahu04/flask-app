@@ -155,6 +155,6 @@ jobs:
       - name: Build and push Docker image
         run: |
           docker build -t flask-app .
-          docker tag flask-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest
+           docker tag flask-app:latest "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest"
+            docker push "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest"
 
