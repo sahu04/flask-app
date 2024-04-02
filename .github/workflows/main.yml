@@ -88,9 +88,15 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ "master" ]
+    branches: 
+      - master
+    paths:
+      - '**/Dockerfile'
   pull_request:
-    branches: [ "master" ]
+    branches: 
+      - master
+    paths:
+      - '**/Dockerfile'
 
 jobs:
   build:
