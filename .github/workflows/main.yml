@@ -171,17 +171,108 @@
 #            echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
 
+# name: Build and Push Docker Images to ECR
+
+# on:
+#   push:
+#     branches:
+#       - develop
+#       - master
+  
+#   pull_request:
+#     branches:
+#       - develop
+#       - master
+   
+
+# env:
+#   AWS_REGION: ap-south-1
+#   AWS_ACCOUNT_ID: 972720899290
+#   ECR_REPOSITORY: flask-app
+
+# jobs:
+#   build-dev-image:
+#     runs-on: ubuntu-latest
+#     # if: github.ref == 'refs/heads/develop' && github.event_name == 'push' && contains(github.event.compare, 'null')
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v2
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v1
+
+#       - name: Build and push the tagged Docker image to Amazon ECR
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#           IMAGE_TAG: dev
+#         run: |
+#           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+ 
+#   build-prod-image:
+#    runs-on: ubuntu-latest
+#    steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+
+#     - name: Configure AWS credentials
+#       uses: aws-actions/configure-aws-credentials@v2
+#       with:
+#         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#         aws-region: ${{ env.AWS_REGION }}
+
+#     - name: Login to Amazon ECR
+#       id: login-ecr
+#       uses: aws-actions/amazon-ecr-login@v1
+
+#     - name: Pull the dev Docker image from Amazon ECR
+#       env:
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         IMAGE_TAG: dev
+#       run: |
+#         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#         echo "Dev image pulled successfully"
+
+#     - name: List Docker images
+#       run: docker images
+
+#     - name: Tag the dev Docker image as prod
+#       env:
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         IMAGE_TAG: dev
+#       run: |
+#         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:prod
+#         echo "Dev image tagged as prod"
+#     - name: List Docker images
+#       run: docker images
+
+
+#     - name: Push the tagged prod Docker image to Amazon ECR
+#       env:
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         IMAGE_TAG: prod
+#       run: |
+#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#         echo "Prod image pushed successfully"
+
 name: Build and Push Docker Images to ECR
 
 on:
   push:
     branches:
-      - develop
       - master
-  
   pull_request:
     branches:
-      - develop
       - master
    
 
@@ -193,7 +284,48 @@ env:
 jobs:
   build-dev-image:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/develop' && github.event_name == 'push' && contains(github.event.compare, 'null')
+
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push' && contains(github.event.compare, 'null')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check for Dockerfile changes
+        id: check-dockerfile
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q 'Dockerfile'; then
+            echo "Dockerfile has changed"
+            exit 0
+          else
+            echo "Dockerfile has not changed. Skipping job."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push the tagged Docker image to Amazon ECR
+        if: steps.check-dockerfile.outputs.result == '0'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: dev
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+ 
+  build-prod-image:
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'pull_request')
 
     steps:
       - name: Checkout code
@@ -210,58 +342,32 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push the tagged Docker image to Amazon ECR
+      - name: Pull the dev Docker image from Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: dev
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "Dev image pulled successfully"
+
+      - name: List Docker images
+        run: docker images
+
+      - name: Tag the dev Docker image as prod
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: dev
+        run: |
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:prod
+          echo "Dev image tagged as prod"
+
+      - name: List Docker images
+        run: docker images
+
+      - name: Push the tagged prod Docker image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: prod
+        run: |
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
- 
-  build-prod-image:
-   runs-on: ubuntu-latest
-   steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Pull the dev Docker image from Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: dev
-      run: |
-        docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "Dev image pulled successfully"
-
-    - name: List Docker images
-      run: docker images
-
-    - name: Tag the dev Docker image as prod
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: dev
-      run: |
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:prod
-        echo "Dev image tagged as prod"
-    - name: List Docker images
-      run: docker images
-
-
-    - name: Push the tagged prod Docker image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: prod
-      run: |
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "Prod image pushed successfully"
-
+          echo "Prod image pushed successfully"
