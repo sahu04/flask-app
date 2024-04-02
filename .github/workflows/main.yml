@@ -249,7 +249,7 @@ jobs:
     - name: Tag the dev Docker image as prod
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: prod
+        IMAGE_TAG: dev
       run: |
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:prod
         echo "Dev image tagged as prod"
