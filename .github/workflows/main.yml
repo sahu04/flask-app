@@ -286,8 +286,6 @@ jobs:
   build-dev-image:
     runs-on: ubuntu-latest
 
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
