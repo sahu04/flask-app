@@ -178,16 +178,12 @@ on:
     branches:
       - develop
       - master
-    paths:
-      - 'Dockerfile'
-      - 'package.json'
+  
   pull_request:
     branches:
       - develop
       - master
-    paths:
-      - 'Dockerfile'
-      - 'package.json'
+   
 
 env:
   AWS_REGION: ap-south-1
@@ -197,7 +193,7 @@ env:
 jobs:
   build-dev-image:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push' && contains(github.event.compare, 'null')
+    # if: github.ref == 'refs/heads/develop' && github.event_name == 'push' && contains(github.event.compare, 'null')
 
     steps:
       - name: Checkout code
@@ -229,7 +225,7 @@ jobs:
 
   build-prod-image:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && contains(github.event.compare, 'null')
+    # if: github.ref == 'refs/heads/master' && github.event_name == 'push' && contains(github.event.compare, 'null')
 
     steps:
       - name: Checkout code
