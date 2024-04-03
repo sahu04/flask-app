@@ -279,9 +279,7 @@ on:
     branches:
       - master
       - develop
-    paths:
-      - 'Dockerfile'
-      - 'package.json'
+
 env:
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: 972720899290
@@ -295,12 +293,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-  
-        # if: github.ref == 'refs/heads/develop' && contains(github.event.head_commit.modified, 'Dockerfile')
-      # - name: Check for Dockerfile changes
-      #   id: check-dockerfile
-      #   run: |
-      #        if: github.ref == 'refs/heads/develop' && contains(github.event.head_commit.modified, 'Dockerfile')
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -322,7 +315,6 @@ jobs:
  
   build-prod-image:
     runs-on: ubuntu-latest
-
     if: github.ref == 'refs/heads/develop' && (github.event_name == 'push' || github.event_name == 'pull_request')
 
     steps:
