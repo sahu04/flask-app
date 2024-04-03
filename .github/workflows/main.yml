@@ -315,7 +315,7 @@ jobs:
  
   build-prod-image:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && (github.event_name == 'push' || github.event_name == 'pull_request')
+    if: github.ref == 'refs/heads/develop'
 
     steps:
       - name: Checkout code
