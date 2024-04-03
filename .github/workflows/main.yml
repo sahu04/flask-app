@@ -272,9 +272,9 @@ on:
     branches:
       - master
       - develop
-    paths:
-      - 'Dockerfile'
-      - 'package.json'
+    # paths:
+    #   - 'Dockerfile'
+    #   - 'package.json'
   pull_request:
     branches:
       - master
