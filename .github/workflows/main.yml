@@ -271,14 +271,14 @@ on:
   push:
     branches:
       - master
-      - develop
+      - testing
     # paths:
     #   - 'Dockerfile'
     #   - 'package.json'
   pull_request:
     branches:
       - master
-      - develop
+      - testing
 
 env:
   AWS_REGION: ap-south-1
@@ -315,7 +315,7 @@ jobs:
  
   build-prod-image:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/testing'
 
     steps:
       - name: Checkout code
