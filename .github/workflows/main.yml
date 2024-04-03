@@ -290,10 +290,12 @@ env:
 jobs:
   build-dev-image:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'pull_request')
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+  
         # if: github.ref == 'refs/heads/develop' && contains(github.event.head_commit.modified, 'Dockerfile')
       # - name: Check for Dockerfile changes
       #   id: check-dockerfile
